@@ -1,0 +1,87 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{graphicx}
+
+% Configuración de márgenes
+\geometry{top=3cm, bottom=3cm, left=2.5cm, right=2.5cm}
+
+% Estilo de títulos
+\titleformat{\section}{\color{green!40!black}\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\color{green!60!black}\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\title{\textbf{Manual de Usuario: Agro-Inteligencia IA}}
+\author{Sistema de Monitoreo de Cultivos}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introducción}
+Este manual describe las funcionalidades del Asistente de Agro-Inteligencia. El sistema utiliza visión artificial (ESP32-CAM) y modelos de lenguaje para asistir en la detección temprana de plagas, enfermedades y deficiencias nutricionales en los cultivos.
+
+\section{Gestión de Cultivos}
+
+\subsection{Registro de Nuevas Parcelas/Plantas}
+Para comenzar el seguimiento de una nueva unidad productiva:
+\begin{itemize}
+    \item \textbf{Comando:} \texttt{/nuevo\_cultivo [Nombre/Variedad]}
+    \item \textbf{Ejemplo:} \texttt{/nuevo\_cultivo Tomate Cherry Invernadero 1}
+    \item \textbf{Nota:} El sistema asignará un ID único (ej. \texttt{CULT-001}).
+\end{itemize}
+
+\subsection{Listado de Activos}
+Para ver todos los cultivos bajo monitoreo:
+\begin{itemize}
+    \item \textbf{Comando:} \texttt{/cultivos}
+\end{itemize}
+
+\section{Monitoreo Visual y Diagnóstico}
+
+\subsection{Análisis Fitosanitario (Foto)}
+Para capturar una imagen y solicitar un diagnóstico automático:
+\begin{itemize}
+    \item \textbf{Comando:} \texttt{/foto} (o \texttt{/foto flash} si hay poca luz).
+    \item \textbf{Análisis:} El agente buscará signos de clorosis, necrosis, insectos o estrés hídrico.
+\end{itemize}
+
+\subsection{Modo Vigilancia}
+Para dejar la cámara monitoreando automáticamente (ej. detección de intrusos o fauna):
+\begin{itemize}
+    \item \textbf{Comando:} \texttt{/vigilancia on}
+\end{itemize}
+
+\section{Simulación y Entrenamiento}
+
+\subsection{Simular Plaga}
+Para probar el sistema de alertas sin tener una plaga real:
+\begin{itemize}
+    \item \textbf{Comando:} \texttt{/simular\_plaga [ID]}
+    \item \textbf{Efecto:} Genera una alerta de "Pulgón detectado" en el registro del cultivo.
+\end{itemize}
+
+\section{Investigación Agronómica}
+
+\subsection{Consultas Técnicas}
+El agente tiene acceso a conocimientos agronómicos generales:
+\begin{itemize}
+    \item \textbf{Comando:} \texttt{/investigar [tema]}
+    \item \textbf{Ejemplo:} \texttt{/investigar ciclo de vida de la mosca blanca en pimiento}
+\end{itemize}
+
+\section{Administración}
+
+\subsection{Estado del Sistema}
+Verifique la conexión con la cámara y el servidor:
+\begin{itemize}
+    \item \textbf{Comando:} \texttt{/status}
+\end{itemize}
+
+\end{document}
