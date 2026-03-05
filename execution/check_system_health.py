@@ -67,13 +67,30 @@ def check_dependencies():
     print("✅ Dependencias críticas detectadas.")
     return True
 
+def check_web_dependencies():
+    """Verifica dependencias opcionales si el servidor web existe."""
+    web_server_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web_server.py")
+    if not os.path.exists(web_server_path):
+        return True # No hay servidor web, no se necesita nada más.
+
+    # python-multipart se importa como 'multipart'
+    multipart_installed = importlib.util.find_spec("multipart") is not None
+    if not multipart_installed:
+        print("❌ Dependencia web faltante: 'python-multipart' (requerido para subir archivos).")
+        print("   Ejecuta: pip install python-multipart")
+        return False
+    
+    print("✅ Dependencias del servidor web detectadas.")
+    return True
+
 def main():
     print("🔍 Iniciando Chequeo de Salud del Sistema...\n")
     checks = [
         check_python_version(),
         check_directories(),
         check_env_file(),
-        check_dependencies()
+        check_dependencies(),
+        check_web_dependencies()
     ]
     
     if all(checks):

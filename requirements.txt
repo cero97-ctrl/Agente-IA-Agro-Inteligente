@@ -13,3 +13,6 @@ pypdf
 SpeechRecognition
 PyYAML
 requests
+fastapi
+uvicorn
+python-multipart
