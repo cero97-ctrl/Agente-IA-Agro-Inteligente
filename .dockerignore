@@ -1,0 +1,14 @@
+# Ignorar el historial de Git y la configuración de VSCode
+.git
+.vscode
+
+# Ignorar archivos de caché de Python y el entorno virtual
+__pycache__/
+*.pyc
+*.pyo
+agent_env/
+
+# Ignorar archivos temporales, de configuración local y documentación
+.tmp/
+.env
+docs/
