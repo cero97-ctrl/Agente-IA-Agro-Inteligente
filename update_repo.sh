@@ -5,14 +5,15 @@ set -euo pipefail
 # Usage:
 #   ./update_repo.sh [-d DIR] [-r REMOTE] [-b BRANCH] [-m "commit message"] [--push] [--no-pull] [--dry-run]
 # Examples:
-#   ./update_repo.sh                    # pull current branch, add/commit changes with default message and push
+#   ./update_repo.sh --push            # pull current branch, add/commit changes with default message and push
 #   ./update_repo.sh -d /path/to/repo -m "Fix docs" --push
 #   ./update_repo.sh --no-pull --push  # don't pull, just commit and push local changes
+#   ./update_repo.sh --push --tag "v1.0.0" -m "Release version 1.0.0"
 
 REMOTE="origin"
 BRANCH=""
 DIR="$(pwd)"
-COMMIT_MSG="Update from update_repo.sh"
+COMMIT_MSG=""
 DO_PUSH=false
 DO_PULL=true
 DRY_RUN=false
@@ -21,6 +22,9 @@ CONFIRM=false
 show_help(){
   sed -n '1,120p' "$0" | sed -n '1,40p'
 }
+
+TAG_NAME=""
+TAG_MESSAGE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -32,6 +36,10 @@ while [[ $# -gt 0 ]]; do
       BRANCH="$2"; shift 2;;
     -m|--message)
       COMMIT_MSG="$2"; shift 2;;
+    --tag)
+      TAG_NAME="$2"; shift 2;;
+    --tag-message)
+      TAG_MESSAGE="$2"; shift 2;;
     --push)
       DO_PUSH=true; shift;;
     --no-pull)
@@ -62,6 +70,10 @@ if [ -z "$BRANCH" ]; then
   BRANCH="$CURRENT_BRANCH"
 fi
 
+if [ -z "$COMMIT_MSG" ]; then
+  COMMIT_MSG="Update from update_repo.sh on branch $BRANCH"
+fi
+
 echo "Branch: $BRANCH"
 
 if [ "$DRY_RUN" = true ]; then
@@ -72,8 +84,11 @@ if [ "$DRY_RUN" = true ]; then
   fi
   echo "Would run: git add -A"
   echo "Would run: git commit -m \"$COMMIT_MSG\" (if there are changes)"
+  if [ -n "$TAG_NAME" ]; then
+    echo "Would run: git tag -a \"$TAG_NAME\" -m \"...\""
+  fi
   if [ "$DO_PUSH" = true ]; then
-    echo "Would run: git push $REMOTE $BRANCH"
+    echo "Would run: git push --follow-tags $REMOTE $BRANCH"
   fi
   exit 0
 fi
@@ -124,7 +139,7 @@ if git status --porcelain | grep -q .; then
     if ! git diff --cached --quiet; then
       # If confirm mode and a default message, allow editing the commit message
       if [ "$CONFIRM" = true ]; then
-        if [ "$COMMIT_MSG" = "Update from update_repo.sh" ] || [ -z "$COMMIT_MSG" ]; then
+      if [[ "$COMMIT_MSG" == "Update from update_repo.sh"* ]] || [ -z "$COMMIT_MSG" ]; then
           echo "Default commit message: '$COMMIT_MSG'"
           read -r -p "Enter commit message (leave empty to use default): " USER_MSG
           if [ -n "$USER_MSG" ]; then
@@ -142,6 +157,21 @@ if git status --porcelain | grep -q .; then
         echo "Commit failed." >&2
         exit 4
       }
+
+      # Tagging logic after successful commit
+      if [ -n "$TAG_NAME" ]; then
+        if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Warning: Tag '$TAG_NAME' already exists. Skipping tag creation."
+        else
+            echo "Creating tag: $TAG_NAME"
+            FINAL_TAG_MSG="${TAG_MESSAGE:-$COMMIT_MSG}"
+            git tag -a "$TAG_NAME" -m "$FINAL_TAG_MSG" || {
+              echo "Tag creation failed." >&2
+              exit 6
+            }
+        fi
+      fi
+
     else
       echo "No staged changes to commit."
     fi
@@ -156,14 +186,14 @@ if [ "$DO_PUSH" = true ]; then
     git --no-pager log --oneline --decorate --graph --all -n 10 || true
     read -r -p "Push to $REMOTE/$BRANCH? [y/N]: " REPLY2
     if [[ "$REPLY2" =~ ^[Yy]$ ]]; then
-      echo "Pushing to $REMOTE $BRANCH..."
-      git push "$REMOTE" "$BRANCH"
+      echo "Pushing to $REMOTE $BRANCH (with tags)..."
+      git push --follow-tags "$REMOTE" "$BRANCH"
     else
       echo "Push skipped by user."
     fi
   else
-    echo "Pushing to $REMOTE $BRANCH..."
-    git push "$REMOTE" "$BRANCH"
+    echo "Pushing to $REMOTE $BRANCH (with tags)..."
+    git push --follow-tags "$REMOTE" "$BRANCH"
   fi
 fi
 

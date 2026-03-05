@@ -26,4 +26,4 @@ else
 fi
 
 # Call update_repo.sh
-./update_repo.sh --remote origin --branch "$CURRENT_BRANCH" --push
+./update_repo.sh --remote origin --branch "$CURRENT_BRANCH" --push "$@"
