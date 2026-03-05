@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Agrónomo IA</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+        }
+
+        #main-container {
+            display: flex;
+            justify-content: center;
+            width: 95%;
+            max-width: 700px;
+            /* Ancho ajustado para solo chat */
+        }
+
+        #chat-container {
+            width: 100%;
+            /* Ocupar todo el ancho disponible */
+            height: 80vh;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilo para cuando se arrastra un archivo */
+        #chat-container.drag-over {
+            border: 2px dashed #007bff;
+            background-color: #f0f8ff;
+        }
+
+        #chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #input-area {
+            flex-direction: column;
+            display: flex;
+            padding: 10px;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            padding: 10px;
+        }
+
+        #input-controls {
+            display: flex;
+            width: 100%;
+        }
+
+        #preview-container {
+            display: none;
+            padding: 5px 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        #send-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 10px 15px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .message {
+            margin-bottom: 15px;
+        }
+
+        .user-message {
+            text-align: right;
+            color: #0056b3;
+        }
+
+        .bot-message {
+            text-align: left;
+            color: #333;
+        }
+
+        .message p {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+
+        .user-message p {
+            background-color: #e7f3ff;
+        }
+
+        .bot-message p {
+            background-color: #f1f1f1;
+        }
+
+        #status-panel {
+            width: 40%;
+            height: 80vh;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .crop-card {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .crop-card.alert {
+            border-left: 5px solid #dc3545;
+        }
+
+        .crop-card.ok {
+            border-left: 5px solid #28a745;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="main-container">
+        <div id="chat-container">
+            <div id="chat-box">
+                <div class="message bot-message">
+                    <p>¡Hola! Soy tu asistente agrónomo. ¿En qué puedo ayudarte hoy?</p>
+                </div>
+            </div>
+            <div id="input-area">
+                <div id="preview-container">
+                    <span id="file-name">Imagen seleccionada</span>
+                    <button onclick="clearFile()"
+                        style="color:red; border:none; background:none; cursor:pointer;">(x)</button>
+                </div>
+                <div id="input-controls">
+                    <input type="text" id="user-input" placeholder="Escribe o arrastra una imagen aquí...">
+                    <button id="send-button">Enviar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 
+        <div id="status-panel">
+            <h2>📡 Estado de Cultivos</h2>
+            <div id="crops-status-container">
+                <p>Cargando datos...</p>
+            </div>
+        </div>
+        -->
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const cropsStatusContainer = document.getElementById('crops-status-container');
+        const API_URL_CHAT = './chat'; // Usar ruta relativa para despliegue
+        const API_URL_CROPS = 'http://127.0.0.1:8000/status/crops';
+        const chatContainer = document.getElementById('chat-container');
+        const previewContainer = document.getElementById('preview-container');
+        const fileNameSpan = document.getElementById('file-name');
+
+        let selectedFile = null;
+
+        async function sendMessage() {
+            const messageText = userInput.value.trim();
+            if (messageText === '' && !selectedFile) return;
+
+            // Muestra el mensaje del usuario en el chat
+            let displayMsg = messageText;
+            if (selectedFile) displayMsg += ` [Imagen: ${selectedFile.name}]`;
+
+            appendMessage(displayMsg, 'user');
+            userInput.value = '';
+
+            // Preparar datos como FormData para soportar archivos
+            const formData = new FormData();
+            formData.append('message', messageText || "Analiza esta imagen"); // Si no hay texto, enviar default
+            if (selectedFile) {
+                formData.append('file', selectedFile);
+            }
+
+            // Limpiar selección visual inmediatamente
+            clearFile();
+
+            try {
+                // Envía el mensaje al back-end
+                const response = await fetch(API_URL_CHAT, {
+                    method: 'POST',
+                    body: formData, // Fetch detecta FormData y pone el Content-Type correcto automáticamente
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error del servidor: ${response.status}`);
+                }
+
+                const data = await response.json();
+                // Muestra la respuesta del bot
+                appendMessage(data.reply, 'bot');
+
+            } catch (error) {
+                console.error('Error al contactar al agente:', error);
+                appendMessage('Lo siento, no pude conectarme con el servidor. Revisa la consola.', 'bot');
+            }
+        }
+
+        function appendMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            const p = document.createElement('p');
+            p.textContent = text;
+            messageDiv.appendChild(p);
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll hacia abajo
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // --- Lógica de Drag & Drop ---
+
+        // Prevenir comportamiento por defecto
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            chatContainer.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Efectos visuales
+        chatContainer.addEventListener('dragover', () => chatContainer.classList.add('drag-over'));
+        ['dragleave', 'drop'].forEach(eventName => {
+            chatContainer.addEventListener(eventName, () => chatContainer.classList.remove('drag-over'));
+        });
+
+        // Manejar el archivo soltado
+        chatContainer.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                handleFile(files[0]);
+            } else {
+                alert("Por favor, arrastra solo archivos de imagen.");
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            fileNameSpan.textContent = `📷 Imagen lista: ${file.name}`;
+            previewContainer.style.display = 'block';
+        }
+
+        window.clearFile = function () {
+            selectedFile = null;
+            previewContainer.style.display = 'none';
+        }
+
+        async function updateCropsStatus() {
+            try {
+                const response = await fetch(API_URL_CROPS);
+                const data = await response.json();
+
+                if (data.status === 'error') {
+                    cropsStatusContainer.innerHTML = `<p style="color: red;">${data.message}</p>`;
+                    return;
+                }
+
+                cropsStatusContainer.innerHTML = ''; // Limpiar contenedor
+
+                if (Object.keys(data).length === 0) {
+                    cropsStatusContainer.innerHTML = '<p>No hay cultivos registrados.</p>';
+                    return;
+                }
+
+                for (const cropId in data) {
+                    const crop = data[cropId];
+                    const isAlert = crop.humidity < 30 || crop.temperature > 35 || crop.pest_detected;
+                    const cardClass = isAlert ? 'alert' : 'ok';
+
+                    const card = document.createElement('div');
+                    card.className = `crop-card ${cardClass}`;
+                    card.innerHTML = `
+                    <strong>${crop.name} (${cropId})</strong><br>
+                    💧 Humedad: ${crop.humidity}%<br>
+                    🌡️ Temp: ${crop.temperature}°C<br>
+                    🐛 Plaga: ${crop.pest_detected || 'Ninguna'}
+                `;
+                    cropsStatusContainer.appendChild(card);
+                }
+
+            } catch (error) {
+                console.error('Error al obtener estado de cultivos:', error);
+                cropsStatusContainer.innerHTML = '<p style="color: red;">No se pudo conectar al servidor de estado.</p>';
+            }
+        }
+
+        /*
+        // Actualizar el estado al cargar la página y luego cada 5 segundos
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCropsStatus();
+            // Aumentamos el intervalo a 15 segundos para reducir el "ruido" en los logs
+            setInterval(updateCropsStatus, 15000);
+        });
+        */
+
+    </script>
+
+</body>
+
+</html>

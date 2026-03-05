@@ -1,0 +1,10 @@
+goal: 'Leer un archivo PDF de la carpeta de documentación e integrarlo a la memoria del agente.'
+required_inputs:
+  - name: 'filename'
+    description: 'Nombre del archivo PDF (debe estar en la carpeta docs/, ej: manual.pdf).'
+steps:
+  - step: 1
+    script_to_invoke: 'execution/ingest_pdf.py'
+    inputs:
+      - name: '--filename'
+        value: '{{filename}}'
