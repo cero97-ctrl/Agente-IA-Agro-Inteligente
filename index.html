@@ -20,13 +20,15 @@
             display: flex;
             justify-content: center;
             width: 95%;
-            max-width: 700px;
-            /* Ancho ajustado para solo chat */
+            max-width: 1200px;
+            /* Aumentado para mostrar ambos paneles */
+            gap: 20px;
         }
 
         #chat-container {
-            width: 100%;
-            /* Ocupar todo el ancho disponible */
+            flex: 1;
+            /* Ocupa el espacio flexible */
+            min-width: 300px;
             height: 80vh;
             border: 1px solid #ccc;
             border-radius: 8px;
@@ -115,7 +117,8 @@
         }
 
         #status-panel {
-            width: 40%;
+            width: 350px;
+            /* Ancho fijo para el panel */
             height: 80vh;
             background-color: white;
             border: 1px solid #ccc;
@@ -123,6 +126,20 @@
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
+            display: block;
+            /* Asegurar que se muestre */
+        }
+
+        @media (max-width: 768px) {
+            #main-container {
+                flex-direction: column;
+            }
+
+            #status-panel {
+                width: 100%;
+                height: auto;
+                max-height: 300px;
+            }
         }
 
         .crop-card {
@@ -202,14 +219,12 @@
             </div>
         </div>
 
-        <!-- 
         <div id="status-panel">
             <h2>📡 Estado de Cultivos</h2>
             <div id="crops-status-container">
                 <p>Cargando datos...</p>
             </div>
         </div>
-        -->
     </div>
 
     <script>
@@ -372,14 +387,12 @@
             }
         }
 
-        /*
         // Actualizar el estado al cargar la página y luego cada 5 segundos
         document.addEventListener('DOMContentLoaded', () => {
             updateCropsStatus();
             // Aumentamos el intervalo a 15 segundos para reducir el "ruido" en los logs
             setInterval(updateCropsStatus, 15000);
         });
-        */
 
     </script>
 
