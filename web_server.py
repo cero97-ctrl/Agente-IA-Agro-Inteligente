@@ -90,11 +90,12 @@ async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = F
         args.extend(["--provider", "gemini"])
 
     response = run_tool("chat_with_llm.py", args)
+    print(f"DEBUG LLM: {response}")
     
     if response.get("status") == "error":
         reply = f"❌ Error del sistema: {response.get('message')}"
     else:
-        reply = response.get("content", "No pude generar una respuesta.")
+        reply = response.get("content", f"No pude generar una respuesta. Debug: {response}")
 
     return {"reply": reply}
 
