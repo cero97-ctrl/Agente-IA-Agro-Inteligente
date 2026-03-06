@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import uuid
 import asyncio
+import time
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware 
 from fastapi.responses import FileResponse
@@ -77,6 +78,68 @@ async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = F
         with open(image_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         print(f"Imagen recibida y guardada en: {image_path}")
+
+    # --- INTERCEPTOR DE COMANDOS (Lógica del Agente) ---
+    # Antes de llamar al LLM, verificamos si es un comando de acción directa
+    msg_clean = message.strip()
+    
+    if msg_clean.startswith("/nuevo_cultivo"):
+        try:
+            parts = msg_clean.split(" ", 1)
+            if len(parts) < 2:
+                return {"reply": "⚠️ Uso: /nuevo_cultivo [Nombre/Variedad]"}
+            
+            new_name = parts[1].strip()
+            
+            # Leer cultivos actuales
+            crops = {}
+            if os.path.exists(CROPS_FILE):
+                try:
+                    with open(CROPS_FILE, 'r') as f:
+                        crops = json.load(f)
+                except: pass
+            
+            # Generar ID (CULT-XXX)
+            max_n = 0
+            for cid in crops:
+                if cid.startswith("CULT-"):
+                    try:
+                        n = int(cid.split("-")[1])
+                        if n > max_n: max_n = n
+                    except: pass
+            new_id = f"CULT-{max_n + 1:03d}"
+            
+            # Guardar nuevo cultivo
+            crops[new_id] = { 
+                "name": new_name, 
+                "humidity": 60.0, 
+                "temperature": 25.0, 
+                "ph": 6.5, 
+                "pest_detected": None,
+                "last_update": time.time(), 
+                "last_alert": 0 
+            }
+            
+            with open(CROPS_FILE, 'w') as f:
+                json.dump(crops, f)
+            
+            return {"reply": f"✅ *Cultivo Registrado (Web)*\n\n🌿 Nombre: {new_name}\n🆔 ID: `{new_id}`\n\nEl panel de estado se actualizará en breve."}
+        except Exception as e:
+            return {"reply": f"❌ Error al crear cultivo: {str(e)}"}
+
+    elif msg_clean.startswith("/simular_plaga"):
+        # Para probar las alertas desde la web
+        try:
+            if os.path.exists(CROPS_FILE):
+                with open(CROPS_FILE, 'r') as f: crops = json.load(f)
+                # Afectar al primer cultivo encontrado
+                if crops:
+                    cid = list(crops.keys())[0]
+                    crops[cid]["pest_detected"] = "Pulgón (Simulado Web)"
+                    crops[cid]["humidity"] = 20.0 # Estrés hídrico
+                    with open(CROPS_FILE, 'w') as f: json.dump(crops, f)
+                    return {"reply": f"⚠️ *Simulación Iniciada en {crops[cid]['name']}*\nPlaga detectada y humedad baja."}
+        except: pass
     
     # Aquí conectamos con el cerebro del agente.
     system_persona = (
