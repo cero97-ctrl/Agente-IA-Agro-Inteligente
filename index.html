@@ -9,9 +9,10 @@
         body {
             font-family: sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
+            justify-content: flex-start;
+            min-height: 100vh;
             background-color: #f0f2f5;
             margin: 0;
         }
@@ -23,6 +24,14 @@
             max-width: 1200px;
             /* Aumentado para mostrar ambos paneles */
             gap: 20px;
+        }
+
+        #page-title {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4a4a4a;
+            margin: 20px 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         #chat-container {
@@ -196,6 +205,7 @@
 
 <body>
 
+    <h1 id="page-title">SINAI 90/10</h1>
     <div id="main-container">
         <div id="chat-container">
             <div id="chat-box">
