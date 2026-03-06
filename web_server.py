@@ -94,8 +94,10 @@ async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = F
     
     if response.get("status") == "error":
         reply = f"❌ Error del sistema: {response.get('message')}"
+    elif "error" in response:
+        reply = f"⚠️ Error del modelo: {response['error']}"
     else:
-        reply = response.get("content", f"No pude generar una respuesta. Debug: {response}")
+        reply = response.get("content", "Lo siento, no pude generar una respuesta.")
 
     return {"reply": reply}
 
