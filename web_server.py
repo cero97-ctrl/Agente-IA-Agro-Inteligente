@@ -5,7 +5,7 @@ import subprocess
 import shutil
 import uuid
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware 
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -54,10 +54,16 @@ def run_tool(script_name, args):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+# Para hacer la firma de la función más robusta, importamos Optional
+from typing import Optional
+
 @app.post("/chat")
-async def chat_endpoint(message: str = Form(...), file: UploadFile = File(None)):
+async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = File(None)):
     print(f"Recibido: {message}")
-    
+    if file:
+        print(f"Archivo recibido en backend: {file.filename}, Tipo: {file.content_type}")
+    else:
+        print("Archivo NO recibido en backend.")
     image_path = None
     if file:
         # Guardar la imagen temporalmente
