@@ -4,6 +4,14 @@ FROM python:3.10-slim
 # Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
+# Instalar dependencias del sistema operativo necesarias para PyAudio, pydub, etc.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    portaudio19-dev \
+    ffmpeg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copiar el archivo de dependencias primero para aprovechar el cache de Docker
 COPY requirements.txt .
 
