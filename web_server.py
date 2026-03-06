@@ -121,8 +121,15 @@ async def get_crops_status():
     except Exception as e:
         return {"status": "error", "message": f"No se pudo leer o parsear el archivo de cultivos: {str(e)}"}
 
-async def periodic_save():
-    """Tarea en segundo plano para guardar datos en la nube cada minuto."""
+async def sync_cycle():
+    """Ciclo de sincronización: Carga inicial + Guardado periódico."""
+    # Esperar 5s para que el servidor arranque y pase el health check
+    await asyncio.sleep(5)
+    
+    print("🔄 Ejecutando carga inicial de datos...")
+    res = run_tool("sync_db.py", ["--action", "load"])
+    print(f"☁️ Carga inicial: {res}")
+
     while True:
         await asyncio.sleep(60) # Esperar 60 segundos
         res = run_tool("sync_db.py", ["--action", "save"])
@@ -130,7 +137,5 @@ async def periodic_save():
 
 @app.on_event("startup")
 async def startup_event():
-    print("🔄 Iniciando servidor... Recuperando memoria de la nube.")
-    res = run_tool("sync_db.py", ["--action", "load"])
-    print(f"☁️ Carga inicial: {res}")
-    asyncio.create_task(periodic_save())
+    print("🚀 Servidor iniciado. Programando sincronización en segundo plano.")
+    asyncio.create_task(sync_cycle())
