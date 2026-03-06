@@ -331,6 +331,12 @@ def main():
     # Asegurar que el directorio temporal existe para evitar errores
     os.makedirs(os.path.dirname(SURVEILLANCE_FILE), exist_ok=True)
 
+    # Asegurar que el archivo de cultivos exista, aunque esté vacío, para la UI web.
+    if not os.path.exists(CROPS_FILE):
+        with open(CROPS_FILE, 'w') as f:
+            json.dump({}, f)
+        print("   🌱 Archivo de cultivos inicializado para la web.")
+
     print("📡 Escuchando Telegram... (Presiona Ctrl+C para detener)")
     print("   El agente responderá a cualquier mensaje que le envíes.")
     
