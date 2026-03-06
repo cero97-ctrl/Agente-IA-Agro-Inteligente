@@ -86,6 +86,8 @@ async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = F
     args = ["--prompt", message, "--system", system_persona]
     if image_path:
         args.extend(["--image", image_path])
+        # Forzar el uso de Gemini para visión, ya que Llama 3 (Groq) es solo texto
+        args.extend(["--provider", "gemini"])
 
     response = run_tool("chat_with_llm.py", args)
     
