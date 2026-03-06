@@ -178,8 +178,8 @@ def simulate_and_monitor_crops():
     updated = False
     
     for cid, stats in crops.items():
-        # 1. Simulación (Actualizar cada 5 segundos)
-        if time.time() - stats.get("last_update", 0) > 5:
+        # 1. Simulación (Solo si NO es modo 'real')
+        if stats.get("mode") != "real" and time.time() - stats.get("last_update", 0) > 5:
             # Objetivos ideales (Tomate/Pimiento)
             target_humidity, target_temp, target_ph = 60, 25.0, 6.5
             

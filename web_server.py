@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from typing import Optional
 
 # Cargar variables de entorno
 load_dotenv()
@@ -55,9 +56,6 @@ def run_tool(script_name, args):
             
     except Exception as e:
         return {"status": "error", "message": str(e)}
-
-# Para hacer la firma de la función más robusta, importamos Optional
-from typing import Optional
 
 @app.post("/chat")
 async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = File(None)):
@@ -208,6 +206,39 @@ async def get_crops_status():
             return json.load(f)
     except Exception as e:
         return {"status": "error", "message": f"No se pudo leer o parsear el archivo de cultivos: {str(e)}"}
+
+class CropUpdate(BaseModel):
+    crop_id: str
+    humidity: float
+    temperature: float
+    ph: float
+    pest_detected: Optional[str] = None
+
+@app.post("/api/update_crop")
+async def update_crop_api(data: CropUpdate):
+    """Endpoint para recibir datos de sensores reales desde el PC."""
+    try:
+        crops = {}
+        if os.path.exists(CROPS_FILE):
+            with open(CROPS_FILE, 'r') as f:
+                crops = json.load(f)
+        
+        # Si el cultivo existe, actualizamos sus valores y lo marcamos como REAL
+        if data.crop_id in crops:
+            crops[data.crop_id]["humidity"] = data.humidity
+            crops[data.crop_id]["temperature"] = data.temperature
+            crops[data.crop_id]["ph"] = data.ph
+            crops[data.crop_id]["pest_detected"] = data.pest_detected
+            crops[data.crop_id]["last_update"] = time.time()
+            crops[data.crop_id]["mode"] = "real" # Desactiva la simulación para este cultivo
+            
+            with open(CROPS_FILE, 'w') as f:
+                json.dump(crops, f)
+            return {"status": "success", "message": f"Cultivo {data.crop_id} actualizado desde sensores remotos."}
+        else:
+            return {"status": "error", "message": f"Cultivo {data.crop_id} no encontrado. Créalo primero en el chat."}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 async def sync_cycle():
     """Ciclo de sincronización: Carga inicial + Guardado periódico."""
