@@ -140,6 +140,31 @@ async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = F
                     with open(CROPS_FILE, 'w') as f: json.dump(crops, f)
                     return {"reply": f"⚠️ *Simulación Iniciada en {crops[cid]['name']}*\nPlaga detectada y humedad baja."}
         except: pass
+
+    elif msg_clean.startswith("/borrar_cultivo"):
+        try:
+            parts = msg_clean.split(" ", 1)
+            if len(parts) < 2:
+                return {"reply": "⚠️ Uso: /borrar_cultivo [ID] (ej: CULT-001)"}
+            
+            target_id = parts[1].strip()
+            
+            if os.path.exists(CROPS_FILE):
+                with open(CROPS_FILE, 'r') as f:
+                    crops = json.load(f)
+                
+                if target_id in crops:
+                    deleted_name = crops[target_id]["name"]
+                    del crops[target_id]
+                    with open(CROPS_FILE, 'w') as f:
+                        json.dump(crops, f)
+                    return {"reply": f"🗑️ *Cultivo Eliminado*\n\nSe ha eliminado: {deleted_name} ({target_id})"}
+                else:
+                    return {"reply": f"❌ No encontré ningún cultivo con el ID: `{target_id}`"}
+            else:
+                return {"reply": "❌ No hay base de datos de cultivos."}
+        except Exception as e:
+            return {"reply": f"❌ Error al borrar: {str(e)}"}
     
     # Aquí conectamos con el cerebro del agente.
     system_persona = (
