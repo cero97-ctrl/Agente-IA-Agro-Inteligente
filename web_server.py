@@ -4,6 +4,7 @@ import json
 import subprocess
 import shutil
 import uuid
+import asyncio
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware 
 from fastapi.responses import FileResponse
@@ -119,3 +120,17 @@ async def get_crops_status():
             return json.load(f)
     except Exception as e:
         return {"status": "error", "message": f"No se pudo leer o parsear el archivo de cultivos: {str(e)}"}
+
+async def periodic_save():
+    """Tarea en segundo plano para guardar datos en la nube cada minuto."""
+    while True:
+        await asyncio.sleep(60) # Esperar 60 segundos
+        res = run_tool("sync_db.py", ["--action", "save"])
+        print(f"☁️ Auto-Guardado: {res}")
+
+@app.on_event("startup")
+async def startup_event():
+    print("🔄 Iniciando servidor... Recuperando memoria de la nube.")
+    res = run_tool("sync_db.py", ["--action", "load"])
+    print(f"☁️ Carga inicial: {res}")
+    asyncio.create_task(periodic_save())
