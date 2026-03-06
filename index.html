@@ -139,6 +139,22 @@
         .crop-card.ok {
             border-left: 5px solid #28a745;
         }
+
+        /* Indicador de escribiendo */
+        .typing-indicator {
+            display: none;
+            margin: 10px 15px;
+            color: #666;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+        
+        .typing-indicator span {
+            animation: blink 1.4s infinite both;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
     </style>
 </head>
 
@@ -149,6 +165,9 @@
             <div id="chat-box">
                 <div class="message bot-message">
                     <p>¡Hola! Soy tu asistente agrónomo. ¿En qué puedo ayudarte hoy?</p>
+                </div>
+                <div id="typing-indicator" class="typing-indicator">
+                    Analizando<span>.</span><span>.</span><span>.</span>
                 </div>
             </div>
             <div id="input-area">
@@ -184,6 +203,7 @@
         const chatContainer = document.getElementById('chat-container');
         const previewContainer = document.getElementById('preview-container');
         const fileNameSpan = document.getElementById('file-name');
+        const typingIndicator = document.getElementById('typing-indicator');
 
         let selectedFile = null;
 
@@ -208,6 +228,11 @@
             // Limpiar selección visual inmediatamente
             clearFile();
 
+            // Mostrar indicador de carga y moverlo al final
+            chatBox.appendChild(typingIndicator);
+            typingIndicator.style.display = 'block';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
             try {
                 // Envía el mensaje al back-end
                 const response = await fetch(API_URL_CHAT, {
@@ -226,6 +251,9 @@
             } catch (error) {
                 console.error('Error al contactar al agente:', error);
                 appendMessage('Lo siento, no pude conectarme con el servidor. Revisa la consola.', 'bot');
+            } finally {
+                // Ocultar indicador siempre, haya éxito o error
+                typingIndicator.style.display = 'none';
             }
         }
 
