@@ -7,7 +7,7 @@ import uuid
 import asyncio
 import time
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.middleware.cors import CORSMiddleware 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -215,8 +215,15 @@ class CropUpdate(BaseModel):
     pest_detected: Optional[str] = None
 
 @app.post("/api/update_crop")
-async def update_crop_api(data: CropUpdate):
+async def update_crop_api(data: CropUpdate, x_api_key: Optional[str] = Header(None)):
     """Endpoint para recibir datos de sensores reales desde el PC."""
+    # --- Seguridad del Endpoint ---
+    server_secret_key = os.getenv("SENSOR_API_KEY")
+    # Si la clave está configurada en el servidor, se vuelve obligatoria.
+    if server_secret_key and x_api_key != server_secret_key:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="API Key inválida o no proporcionada")
+
     try:
         crops = {}
         if os.path.exists(CROPS_FILE):
