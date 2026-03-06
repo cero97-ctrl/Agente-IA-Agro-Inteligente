@@ -17,3 +17,4 @@ fastapi
 uvicorn
 python-multipart
 huggingface-hub>=0.10.0
+Pillow
