@@ -138,4 +138,9 @@ async def sync_cycle():
 @app.on_event("startup")
 async def startup_event():
     print("🚀 Servidor iniciado. Programando sincronización en segundo plano.")
+    
+    # Iniciar el cerebro del agente (Telegram + Cultivos) en segundo plano
+    print("🌱 Arrancando agente de cultivos (listen_telegram.py)...")
+    subprocess.Popen([sys.executable, "execution/listen_telegram.py"])
+    
     asyncio.create_task(sync_cycle())
