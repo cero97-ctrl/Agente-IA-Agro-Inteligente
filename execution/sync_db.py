@@ -1,66 +1,69 @@
 #!/usr/bin/env python3
+import argparse
 import os
 import sys
-import argparse
-from huggingface_hub import HfApi, hf_hub_download
-from dotenv import load_dotenv
+from pathlib import Path
 
-# Cargar variables de entorno
-load_dotenv()
+try:
+    from huggingface_hub import HfApi, snapshot_download
+except ImportError:
+    print("❌ Error: Falta 'huggingface_hub'. Instala: pip install huggingface_hub", file=sys.stderr)
+    sys.exit(1)
 
-# Configuración de rutas
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOCAL_FILE = os.path.join(BASE_DIR, ".tmp", "telegram_crops.json")
-REPO_FILENAME = "telegram_crops.json"
+# Configuración: Apunta a .tmp/chroma_db en la raíz del proyecto
+DB_LOCAL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".tmp", "chroma_db")
 
-def main():
-    parser = argparse.ArgumentParser(description="Sincronizar base de datos con Hugging Face Datasets")
-    parser.add_argument("--action", choices=["load", "save"], required=True, help="Acción: load (bajar) o save (subir)")
-    args = parser.parse_args()
-
-    repo_id = os.getenv("DATASET_REPO_ID")
-    token = os.getenv("HF_TOKEN")
-
-    if not repo_id:
-        print("⚠️  DATASET_REPO_ID no configurado. Saltando sincronización.")
-        return
-
-    if not token:
-        print("⚠️  HF_TOKEN no configurado. Saltando sincronización.")
+def upload_db(repo_id, token):
+    if not os.path.exists(DB_LOCAL_PATH):
+        print(f"⚠️ No hay base de datos local en {DB_LOCAL_PATH} para subir.")
         return
 
     api = HfApi(token=token)
+    print(f"☁️  Subiendo memoria a {repo_id}...")
+    try:
+        api.upload_folder(
+            folder_path=DB_LOCAL_PATH,
+            repo_id=repo_id,
+            repo_type="dataset",
+            path_in_repo="chroma_db",
+            commit_message="Auto-save: Actualización de memoria del agente"
+        )
+        print("✅ Subida completada.")
+    except Exception as e:
+        print(f"❌ Error subiendo: {e}")
+
+def download_db(repo_id, token):
+    print(f"☁️  Descargando memoria de {repo_id}...")
+    try:
+        # Descargar en la carpeta .tmp raíz. snapshot_download recreará la estructura.
+        local_dir = os.path.dirname(DB_LOCAL_PATH)
+        snapshot_download(
+            repo_id=repo_id,
+            repo_type="dataset",
+            local_dir=local_dir,
+            allow_patterns=["chroma_db/*"],
+            token=token
+        )
+        print("✅ Descarga completada.")
+    except Exception as e:
+        print(f"⚠️  No se pudo descargar (¿Es la primera vez o el dataset está vacío?): {e}")
+
+def main():
+    parser = argparse.ArgumentParser(description="Sincronizar ChromaDB con Hugging Face.")
+    parser.add_argument("--action", choices=["save", "load"], required=True)
+    args = parser.parse_args()
+
+    token = os.getenv("HF_TOKEN")
+    repo_id = os.getenv("HF_DATASET_ID") # Ej: "usuario/agro-memory-db"
+
+    if not token or not repo_id:
+        print("⚠️  Saltando sync: Faltan HF_TOKEN o HF_DATASET_ID en .env")
+        return
 
     if args.action == "save":
-        if not os.path.exists(LOCAL_FILE):
-            print(f"⚠️  Archivo local no encontrado: {LOCAL_FILE}")
-            return
-        
-        print(f"☁️  Subiendo datos a {repo_id}...")
-        try:
-            api.upload_file(
-                path_or_fileobj=LOCAL_FILE,
-                path_in_repo=REPO_FILENAME,
-                repo_id=repo_id,
-                repo_type="dataset"
-            )
-            print("✅ Guardado en la nube exitoso.")
-        except Exception as e:
-            print(f"❌ Error al subir: {e}")
-
+        upload_db(repo_id, token)
     elif args.action == "load":
-        print(f"☁️  Descargando datos de {repo_id}...")
-        try:
-            hf_hub_download(
-                repo_id=repo_id,
-                filename=REPO_FILENAME,
-                repo_type="dataset",
-                local_dir=os.path.dirname(LOCAL_FILE), # Descarga en .tmp/
-                token=token
-            )
-            print("✅ Datos recuperados exitosamente.")
-        except Exception as e:
-            print(f"⚠️  No se pudo descargar (¿Es la primera vez?): {e}")
+        download_db(repo_id, token)
 
 if __name__ == "__main__":
     main()
