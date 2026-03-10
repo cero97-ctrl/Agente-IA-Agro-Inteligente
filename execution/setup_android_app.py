@@ -363,7 +363,11 @@ def fix_expo_config(project_path):
         "buildType": "apk"
       }
     },
-    "production": {}
+    "production": {
+      "android": {
+        "buildType": "aab"
+      }
+    }
   },
   "submit": {
     "production": {}
@@ -371,7 +375,7 @@ def fix_expo_config(project_path):
 }"""
     with open(eas_json_path, 'w') as f:
         f.write(eas_content)
-    print("   ✅ eas.json configurado para generar APK.")
+    print("   ✅ eas.json configurado para generar APK (preview) y AAB (production).")
 
     # 2. app.json con package name
     app_json_path = os.path.join(project_path, "app.json")
