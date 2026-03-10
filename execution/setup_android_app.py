@@ -365,7 +365,7 @@ def fix_expo_config(project_path):
     },
     "production": {
       "android": {
-        "buildType": "aab"
+        "buildType": "app-bundle"
       }
     }
   },
@@ -377,8 +377,25 @@ def fix_expo_config(project_path):
         f.write(eas_content)
     print("   ✅ eas.json configurado para generar APK (preview) y AAB (production).")
 
-    # 2. app.json con package name
+    # 2. app.json con package name y logo
     app_json_path = os.path.join(project_path, "app.json")
+
+    # --- Lógica para el logo ---
+    # La ruta del script es .../execution/setup_android_app.py
+    # La ruta del logo es .../docs/AGROBOT.png
+    agent_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    logo_src_path = os.path.join(agent_root, "docs", "AGROBOT.png")
+    
+    assets_dir = os.path.join(project_path, "assets")
+    logo_dest_path = os.path.join(assets_dir, "icon.png")
+    
+    if os.path.exists(logo_src_path):
+        os.makedirs(assets_dir, exist_ok=True)
+        shutil.copy(logo_src_path, logo_dest_path)
+        print(f"   🖼️  Logo copiado a: {os.path.relpath(logo_dest_path)}")
+    else:
+        print(f"   ⚠️  No se encontró el logo en: {logo_src_path}")
+    # --- Fin lógica del logo ---
     
     base_config = {}
     if os.path.exists(app_json_path):
@@ -393,6 +410,7 @@ def fix_expo_config(project_path):
     # Asegurar campos críticos
     base_config["expo"]["name"] = base_config["expo"].get("name", "Agro-Inteligente")
     base_config["expo"]["slug"] = base_config["expo"].get("slug", "mi-primera-app")
+    base_config["expo"]["icon"] = "./assets/icon.png" # Referencia al icono
     
     if "android" not in base_config["expo"]:
         base_config["expo"]["android"] = {}
@@ -404,7 +422,7 @@ def fix_expo_config(project_path):
 
     with open(app_json_path, 'w') as f:
         json.dump(base_config, f, indent=2)
-    print(f"   ✅ app.json actualizado (Package: {base_config['expo']['android'].get('package')})")
+    print(f"   ✅ app.json actualizado (Package: {base_config['expo']['android'].get('package')}, Icono: {base_config['expo'].get('icon')})")
 
 def cleanup_native_artifacts(root_path):
     """Elimina archivos de scaffolding de Android Nativo que pueden confundir a EAS Build."""
