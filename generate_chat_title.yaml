@@ -1,0 +1,22 @@
+goal: "Generar un título conciso y descriptivo para un historial de chat."
+required_inputs:
+  - name: "chat_content"
+    description: "El contenido completo del historial de chat como una cadena de texto."
+steps:
+  - step: 1
+    description: "Generar un título para el historial de chat."
+    script: "execution/generate_chat_title.py"
+    args:
+      - "--chat_content"
+      - "{{chat_content}}"
+    outputs:
+      - name: "title"
+        description: "El título generado para el historial de chat."
+expected_outputs:
+  - name: "title"
+    description: "Un objeto JSON que contiene el título generado. Ejemplo: {\"title\": \"Análisis de Suelo para Cultivo de Maíz\"}"
+edge_cases:
+  - case: "El contenido del chat es demasiado corto o no tiene suficiente contexto."
+    recovery_protocol: "Devolver un título genérico como 'Nuevo Chat' y notificar al usuario."
+  - case: "Fallo en la API del LLM."
+    recovery_protocol: "Reintentar hasta 3 veces. Si el fallo persiste, notificar al usuario con el mensaje de error."
