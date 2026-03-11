@@ -5,6 +5,13 @@ import sys
 import shutil
 import json
 
+try:
+    from PIL import Image
+except ImportError:
+    print("❌ Error: La librería 'Pillow' es necesaria para procesar imágenes.")
+    print("   Por favor, instálala ejecutando: pip install Pillow")
+    sys.exit(1)
+
 # --- CONFIGURACIÓN ---
 APP_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".tmp", "APP-ANDROID", "mi-primera-app")
 HF_URL = "https://cero2k6-agente-agro-inteligente.hf.space"
@@ -391,8 +398,33 @@ def fix_expo_config(project_path):
     
     if os.path.exists(logo_src_path):
         os.makedirs(assets_dir, exist_ok=True)
-        shutil.copy(logo_src_path, logo_dest_path)
-        print(f"   🖼️  Logo copiado a: {os.path.relpath(logo_dest_path)}")
+        
+        # --- Lógica para asegurar que el icono sea cuadrado ---
+        with Image.open(logo_src_path) as img:
+            width, height = img.size
+            if width == height:
+                # La imagen ya es cuadrada, solo copiar
+                shutil.copy(logo_src_path, logo_dest_path)
+                print(f"   🖼️  Logo cuadrado copiado a: {os.path.relpath(logo_dest_path)}")
+            else:
+                # La imagen no es cuadrada, crear un fondo cuadrado y centrarla
+                print(f"   ⚠️  El logo no es cuadrado ({width}x{height}). Creando una versión cuadrada...")
+                side_length = max(width, height)
+                
+                # Crear un nuevo lienzo cuadrado con fondo transparente
+                new_img = Image.new('RGBA', (side_length, side_length), (0, 0, 0, 0))
+                
+                # Calcular la posición para centrar la imagen original
+                paste_x = (side_length - width) // 2
+                paste_y = (side_length - height) // 2
+                
+                # Pegar la imagen original en el lienzo (usando la imagen como máscara si tiene transparencia)
+                new_img.paste(img, (paste_x, paste_y), img if img.mode == 'RGBA' else None)
+                
+                # Guardar la nueva imagen cuadrada
+                new_img.save(logo_dest_path, 'PNG')
+                print(f"   🖼️  Versión cuadrada del logo guardada en: {os.path.relpath(logo_dest_path)}")
+        # --- Fin de la lógica del icono ---
     else:
         print(f"   ⚠️  No se encontró el logo en: {logo_src_path}")
     # --- Fin lógica del logo ---
