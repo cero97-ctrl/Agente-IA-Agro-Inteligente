@@ -21,3 +21,16 @@ echo "Starting update for branch: $CURRENT_BRANCH"
 # It will handle adding, committing, and pushing.
 ./update_repo.sh --remote origin --branch "$CURRENT_BRANCH" --push "$@"
 
+# --- INTEGRACIÓN HUGGING FACE ---
+# 1. Intentar cargar el token desde .env si no está en el entorno
+if [ -z "${HF_TOKEN:-}" ] && [ -f .env ]; then
+    HF_TOKEN=$(grep "^HF_TOKEN=" .env | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+fi
+
+# 2. Si tenemos token, configurar remoto y hacer push
+if [ -n "${HF_TOKEN:-}" ]; then
+    echo "🔑 Configurando autenticación de Hugging Face..."
+    git remote set-url hf "https://cero2k6:${HF_TOKEN}@huggingface.co/spaces/cero2k6/agente-agro-inteligente"
+    echo "🚀 Enviando cambios a Hugging Face (Space)..."
+    git push hf "$CURRENT_BRANCH:main" || echo "⚠️ Advertencia: Falló el push a Hugging Face."
+fi
