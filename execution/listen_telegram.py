@@ -341,8 +341,9 @@ def main():
     print("   El agente responderá a cualquier mensaje que le envíes.")
     
     # Verificación preventiva del Token para evitar spam de errores en logs
-    if not os.getenv("TELEGRAM_BOT_TOKEN"):
-        print("⚠️  TELEGRAM_BOT_TOKEN no detectado en .env. El agente de Telegram se detendrá (Modo solo Web).")
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not token or len(token) < 10:
+        print("⚠️  TELEGRAM_BOT_TOKEN no configurado o inválido. El agente de Telegram se detendrá (Modo solo Web).")
         return
 
     # Verificación de configuración al inicio

@@ -198,8 +198,12 @@ async def chat_endpoint(message: str = Form(...), role: str = Form("productor"),
 @app.get("/")
 @app.get("/index.html")
 async def read_root():
-    # Añadimos cabeceras para evitar que el navegador use una versión vieja (Caché)
-    return FileResponse("index.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
+    # Cabeceras agresivas anti-caché para asegurar que se vea el nuevo botón
+    return FileResponse("index.html", headers={
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    })
 
 @app.get("/status/crops")
 async def get_crops_status():
