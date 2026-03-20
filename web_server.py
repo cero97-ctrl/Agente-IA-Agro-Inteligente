@@ -58,7 +58,7 @@ def run_tool(script_name, args):
         return {"status": "error", "message": str(e)}
 
 @app.post("/chat")
-async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = File(None)):
+async def chat_endpoint(message: str = Form(...), role: str = Form("productor"), file: Optional[UploadFile] = File(None)):
     print(f"Recibido: {message}")
     if file:
         print(f"Archivo recibido en backend: {file.filename}, Tipo: {file.content_type}")
@@ -165,10 +165,17 @@ async def chat_endpoint(message: str = Form(...), file: Optional[UploadFile] = F
             return {"reply": f"❌ Error al borrar: {str(e)}"}
     
     # Aquí conectamos con el cerebro del agente.
-    system_persona = (
-        "Eres un Asistente Agrónomo de IA experto en agricultura de precisión. "
-        "Respondes de forma técnica pero accesible para agricultores."
-    )
+    if role == "agronomo":
+        system_persona = (
+            "Eres un Asistente Agrónomo Senior. Estás hablando con un colega experto (Ingeniero Agrónomo). "
+            "Usa terminología técnica avanzada, enfócate en fisiología vegetal, análisis de datos de sensores "
+            "y estrategias de manejo integrado. Sé conciso y profesional."
+        )
+    else:
+        system_persona = (
+            "Eres un Asistente Agrónomo de IA experto en agricultura de precisión. "
+            "Respondes de forma técnica pero accesible para agricultores y productores."
+        )
     
     args = ["--prompt", message, "--system", system_persona]
     if image_path:

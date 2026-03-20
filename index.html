@@ -166,6 +166,28 @@
             border-left: 5px solid #28a745;
         }
 
+        /* Botón de cambio de Rol */
+        #role-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .role-productor {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .role-agronomo {
+            background-color: #007bff;
+            color: white;
+        }
+
         /* Indicador de escribiendo */
         .typing-indicator {
             display: none;
@@ -231,6 +253,7 @@
 
         <div id="status-panel">
             <h2>📡 Estado de Cultivos</h2>
+            <button id="role-btn" class="role-productor" onclick="toggleRole()">👤 Rol: Productor</button>
             <div id="crops-status-container">
                 <p>Cargando datos...</p>
             </div>
@@ -248,8 +271,22 @@
         const previewContainer = document.getElementById('preview-container');
         const fileNameSpan = document.getElementById('file-name');
         const typingIndicator = document.getElementById('typing-indicator');
+        const roleBtn = document.getElementById('role-btn');
 
         let selectedFile = null;
+        let currentRole = 'productor';
+
+        function toggleRole() {
+            if (currentRole === 'productor') {
+                currentRole = 'agronomo';
+                roleBtn.textContent = '👨‍🌾 Rol: Agrónomo (Experto)';
+                roleBtn.className = 'role-agronomo';
+            } else {
+                currentRole = 'productor';
+                roleBtn.textContent = '👤 Rol: Productor';
+                roleBtn.className = 'role-productor';
+            }
+        }
 
         async function sendMessage() {
             const messageText = userInput.value.trim();
@@ -265,6 +302,7 @@
             // Preparar datos como FormData para soportar archivos
             const formData = new FormData();
             formData.append('message', messageText || "Analiza esta imagen"); // Si no hay texto, enviar default
+            formData.append('role', currentRole);
             if (selectedFile) {
                 formData.append('file', selectedFile);
             }

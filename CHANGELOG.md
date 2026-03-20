@@ -35,6 +35,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Mejora RAG**: Deduplicación automática de recuerdos en `chat_with_llm.py` para evitar respuestas repetitivas.
 - **Mejora UX**: El comando `/memorias` en Telegram ahora muestra la hora exacta del recuerdo para facilitar la auditoría.
 - **Soporte Multi-Usuario**: `telegram_tool.py` y `listen_telegram.py` actualizados para responder a múltiples usuarios simultáneamente (Mente Colmena).
+- **Interfaz Web Completa**: Despliegue de servidor FastAPI (`web_server.py`) + Frontend (`index.html`) para acceso universal desde navegador.
+- **Roles Dinámicos**: Funcionalidad de cambio de rol (Productor/Agrónomo) en tiempo real desde la UI web para ajustar la complejidad de las respuestas.
+- **Telemetría en Vivo**: Visualización de estado de cultivos (Humedad, Temperatura, pH) en el panel lateral web, sincronizado con el backend.
+- **API de Sensores**: Nuevo endpoint `/api/update_crop` para la inyección de datos desde sensores IoT físicos.
 
 ## [1.0.0] - 2026-02-16
 ### Añadido
