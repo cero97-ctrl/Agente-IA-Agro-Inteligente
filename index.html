@@ -231,9 +231,6 @@
     <div id="main-container">
         <div id="chat-container">
             <div id="chat-box">
-                <div class="message bot-message">
-                    <p>¡Hola! Soy tu asistente agrónomo. ¿En qué puedo ayudarte hoy?</p>
-                </div>
                 <div id="typing-indicator" class="typing-indicator">
                     Analizando<span>.</span><span>.</span><span>.</span>
                 </div>
@@ -261,12 +258,13 @@
     </div>
 
     <script>
-        console.log("Agente Agro UI v1.3 - Estilo Agro");
+        console.log("Agente Agro UI v1.4 - Persistencia de Chat");
         const chatBox = document.getElementById('chat-box');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         const cropsStatusContainer = document.getElementById('crops-status-container');
         const API_URL_CHAT = './chat'; // Usar ruta relativa para despliegue
+        const API_URL_HISTORY = './chat/history';
         const API_URL_CROPS = './status/crops';
         const chatContainer = document.getElementById('chat-container');
         const previewContainer = document.getElementById('preview-container');
@@ -276,6 +274,13 @@
 
         let selectedFile = null;
         let currentRole = 'productor';
+
+        // Gestión de Sesión (Persistencia)
+        let sessionId = localStorage.getItem('agro_session_id');
+        if (!sessionId) {
+            sessionId = 'sess-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+            localStorage.setItem('agro_session_id', sessionId);
+        }
 
         function toggleRole() {
             if (currentRole === 'productor') {
@@ -304,6 +309,7 @@
             const formData = new FormData();
             formData.append('message', messageText || "Analiza esta imagen"); // Si no hay texto, enviar default
             formData.append('role', currentRole);
+            formData.append('session_id', sessionId);
             if (selectedFile) {
                 formData.append('file', selectedFile);
             }
@@ -348,6 +354,30 @@
             messageDiv.appendChild(p);
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll hacia abajo
+        }
+
+        async function loadChatHistory() {
+            try {
+                const response = await fetch(`${API_URL_HISTORY}?session_id=${sessionId}`);
+                const history = await response.json();
+
+                chatBox.innerHTML = ''; // Limpiar chat actual
+                // Re-agregar indicador (oculto)
+                chatBox.appendChild(typingIndicator);
+
+                if (history.length === 0) {
+                    appendMessage("¡Hola! Soy tu asistente agrónomo. ¿En qué puedo ayudarte hoy?", "bot");
+                } else {
+                    history.forEach(msg => {
+                        // Mapear 'user'/'bot' a las clases CSS
+                        appendMessage(msg.content, msg.role);
+                    });
+                }
+            } catch (error) {
+                console.error("Error cargando historial:", error);
+                // Fallback mensaje inicial
+                appendMessage("¡Hola! Soy tu asistente agrónomo. (Offline)", "bot");
+            }
         }
 
         sendButton.addEventListener('click', sendMessage);
@@ -441,6 +471,7 @@
             updateCropsStatus();
             // Aumentamos el intervalo a 15 segundos para reducir el "ruido" en los logs
             setInterval(updateCropsStatus, 15000);
+            loadChatHistory(); // Cargar historial al iniciar
         });
 
     </script>

@@ -28,6 +28,23 @@ app.add_middleware(
 )
 
 CROPS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".tmp", "telegram_crops.json")
+WEB_HISTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".tmp", "web_chat_history.json")
+
+def save_chat_entry(session_id, role, content):
+    """Guarda un mensaje en el historial persistente json."""
+    data = {}
+    if os.path.exists(WEB_HISTORY_FILE):
+        try:
+            with open(WEB_HISTORY_FILE, 'r') as f:
+                data = json.load(f)
+        except: pass
+    
+    if session_id not in data: data[session_id] = []
+    
+    data[session_id].append({"role": role, "content": content, "timestamp": time.time()})
+    
+    with open(WEB_HISTORY_FILE, 'w') as f:
+        json.dump(data, f)
 
 def run_tool(script_name, args):
     """Helper para ejecutar scripts de la carpeta execution/"""
@@ -58,8 +75,12 @@ def run_tool(script_name, args):
         return {"status": "error", "message": str(e)}
 
 @app.post("/chat")
-async def chat_endpoint(message: str = Form(...), role: str = Form("productor"), file: Optional[UploadFile] = File(None)):
+async def chat_endpoint(message: str = Form(...), role: str = Form("productor"), session_id: str = Form(...), file: Optional[UploadFile] = File(None)):
     print(f"Recibido: {message}")
+    
+    # 1. Guardar mensaje del usuario
+    save_chat_entry(session_id, "user", message)
+
     if file:
         print(f"Archivo recibido en backend: {file.filename}, Tipo: {file.content_type}")
     else:
@@ -80,13 +101,16 @@ async def chat_endpoint(message: str = Form(...), role: str = Form("productor"),
     # --- INTERCEPTOR DE COMANDOS (Lógica del Agente) ---
     # Antes de llamar al LLM, verificamos si es un comando de acción directa
     msg_clean = message.strip()
+    reply = ""
     
     if msg_clean.startswith("/nuevo_cultivo"):
         try:
             parts = msg_clean.split(" ", 1)
             if len(parts) < 2:
-                return {"reply": "⚠️ Uso: /nuevo_cultivo [Nombre/Variedad]"}
-            
+                reply = "⚠️ Uso: /nuevo_cultivo [Nombre/Variedad]"
+                save_chat_entry(session_id, "bot", reply)
+                return {"reply": reply}
+
             new_name = parts[1].strip()
             
             # Leer cultivos actuales
@@ -121,9 +145,11 @@ async def chat_endpoint(message: str = Form(...), role: str = Form("productor"),
             with open(CROPS_FILE, 'w') as f:
                 json.dump(crops, f)
             
-            return {"reply": f"✅ *Cultivo Registrado (Web)*\n\n🌿 Nombre: {new_name}\n🆔 ID: `{new_id}`\n\nEl panel de estado se actualizará en breve."}
+            reply = f"✅ *Cultivo Registrado (Web)*\n\n🌿 Nombre: {new_name}\n🆔 ID: `{new_id}`\n\nEl panel de estado se actualizará en breve."
         except Exception as e:
-            return {"reply": f"❌ Error al crear cultivo: {str(e)}"}
+            reply = f"❌ Error al crear cultivo: {str(e)}"
+        
+        # (Continuará abajo para guardar y retornar)
 
     elif msg_clean.startswith("/simular_plaga"):
         # Para probar las alertas desde la web
@@ -136,14 +162,16 @@ async def chat_endpoint(message: str = Form(...), role: str = Form("productor"),
                     crops[cid]["pest_detected"] = "Pulgón (Simulado Web)"
                     crops[cid]["humidity"] = 20.0 # Estrés hídrico
                     with open(CROPS_FILE, 'w') as f: json.dump(crops, f)
-                    return {"reply": f"⚠️ *Simulación Iniciada en {crops[cid]['name']}*\nPlaga detectada y humedad baja."}
+                    reply = f"⚠️ *Simulación Iniciada en {crops[cid]['name']}*\nPlaga detectada y humedad baja."
         except: pass
 
     elif msg_clean.startswith("/borrar_cultivo"):
         try:
             parts = msg_clean.split(" ", 1)
             if len(parts) < 2:
-                return {"reply": "⚠️ Uso: /borrar_cultivo [ID] (ej: CULT-001)"}
+                reply = "⚠️ Uso: /borrar_cultivo [ID] (ej: CULT-001)"
+                save_chat_entry(session_id, "bot", reply)
+                return {"reply": reply}
             
             target_id = parts[1].strip()
             
@@ -156,43 +184,45 @@ async def chat_endpoint(message: str = Form(...), role: str = Form("productor"),
                     del crops[target_id]
                     with open(CROPS_FILE, 'w') as f:
                         json.dump(crops, f)
-                    return {"reply": f"🗑️ *Cultivo Eliminado*\n\nSe ha eliminado: {deleted_name} ({target_id})"}
+                    reply = f"🗑️ *Cultivo Eliminado*\n\nSe ha eliminado: {deleted_name} ({target_id})"
                 else:
-                    return {"reply": f"❌ No encontré ningún cultivo con el ID: `{target_id}`"}
+                    reply = f"❌ No encontré ningún cultivo con el ID: `{target_id}`"
             else:
-                return {"reply": "❌ No hay base de datos de cultivos."}
+                reply = "❌ No hay base de datos de cultivos."
         except Exception as e:
-            return {"reply": f"❌ Error al borrar: {str(e)}"}
+            reply = f"❌ Error al borrar: {str(e)}"
     
-    # Aquí conectamos con el cerebro del agente.
-    if role == "agronomo":
-        system_persona = (
-            "Eres un Asistente Agrónomo Senior. Estás hablando con un colega experto (Ingeniero Agrónomo). "
-            "Usa terminología técnica avanzada, enfócate en fisiología vegetal, análisis de datos de sensores "
-            "y estrategias de manejo integrado. Sé conciso y profesional."
-        )
-    else:
-        system_persona = (
-            "Eres un Asistente Agrónomo de IA experto en agricultura de precisión. "
-            "Respondes de forma técnica pero accesible para agricultores y productores."
-        )
-    
-    args = ["--prompt", message, "--system", system_persona]
-    if image_path:
-        args.extend(["--image", image_path])
-        # Forzar el uso de Gemini para visión, ya que Llama 3 (Groq) es solo texto
-        args.extend(["--provider", "gemini"])
+    # Si no fue un comando directo, llamar al LLM
+    if not reply:
+        if role == "agronomo":
+            system_persona = (
+                "Eres un Asistente Agrónomo Senior. Estás hablando con un colega experto (Ingeniero Agrónomo). "
+                "Usa terminología técnica avanzada, enfócate en fisiología vegetal, análisis de datos de sensores "
+                "y estrategias de manejo integrado. Sé conciso y profesional."
+            )
+        else:
+            system_persona = (
+                "Eres un Asistente Agrónomo de IA experto en agricultura de precisión. "
+                "Respondes de forma técnica pero accesible para agricultores y productores."
+            )
+        
+        args = ["--prompt", message, "--system", system_persona]
+        if image_path:
+            args.extend(["--image", image_path])
+            args.extend(["--provider", "gemini"])
 
-    response = run_tool("chat_with_llm.py", args)
-    print(f"DEBUG LLM: {response}")
-    
-    if response.get("status") == "error":
-        reply = f"❌ Error del sistema: {response.get('message')}"
-    elif "error" in response:
-        reply = f"⚠️ Error del modelo: {response['error']}"
-    else:
-        reply = response.get("content", "Lo siento, no pude generar una respuesta.")
+        response = run_tool("chat_with_llm.py", args)
+        print(f"DEBUG LLM: {response}")
+        
+        if response.get("status") == "error":
+            reply = f"❌ Error del sistema: {response.get('message')}"
+        elif "error" in response:
+            reply = f"⚠️ Error del modelo: {response['error']}"
+        else:
+            reply = response.get("content", "Lo siento, no pude generar una respuesta.")
 
+    # 2. Guardar respuesta del bot y retornar
+    save_chat_entry(session_id, "bot", reply)
     return {"reply": reply}
 
 @app.get("/")
@@ -204,6 +234,17 @@ async def read_root():
         "Pragma": "no-cache",
         "Expires": "0"
     })
+
+@app.get("/chat/history")
+async def get_chat_history_endpoint(session_id: str):
+    """Devuelve el historial de chat para una sesión específica."""
+    if os.path.exists(WEB_HISTORY_FILE):
+        try:
+            with open(WEB_HISTORY_FILE, 'r') as f:
+                data = json.load(f)
+                return data.get(session_id, [])
+        except: pass
+    return []
 
 @app.get("/status/crops")
 async def get_crops_status():
