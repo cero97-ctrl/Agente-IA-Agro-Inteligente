@@ -177,7 +177,19 @@
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.1s;
+            /* Transición rápida para efecto mecánico */
+            box-shadow: 0 5px #5a2d0c;
+            /* Sombra sólida para efecto 3D */
+            position: relative;
+            top: 0;
+        }
+
+        #role-btn:active {
+            box-shadow: 0 2px #5a2d0c;
+            /* La sombra se reduce al presionar */
+            top: 3px;
+            /* El botón baja físicamente */
         }
 
         .role-productor {
