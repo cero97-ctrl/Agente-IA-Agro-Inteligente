@@ -106,7 +106,7 @@ git fetch "$REMOTE"
 if [ "$DO_PULL" = true ]; then
   if git rev-parse --verify "$REMOTE/$BRANCH" >/dev/null 2>&1; then
     echo "Pulling latest from $REMOTE/$BRANCH (rebase)..."
-    git pull --rebase "$REMOTE" "$BRANCH" || {
+    git pull --rebase --autostash "$REMOTE" "$BRANCH" || {
       echo "Pull failed: you may need to resolve conflicts manually." >&2
       exit 3
     }

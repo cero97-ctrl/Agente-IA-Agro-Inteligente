@@ -17,13 +17,7 @@ CURRENT_BRANCH=$(git symbolic-ref --quiet --short HEAD || echo "main")
 
 echo "Starting update for branch: $CURRENT_BRANCH"
 
-# Commit local changes before pulling (WIP)
-git add -A
-if ! git diff --staged --quiet; then
-  git commit -m "WIP: guardar cambios antes de pull" || true
-else
-  echo "No local changes to commit (pre-check)."
-fi
-
-# Call update_repo.sh
+# Call update_repo.sh, passing all arguments.
+# It will handle adding, committing, and pushing.
 ./update_repo.sh --remote origin --branch "$CURRENT_BRANCH" --push "$@"
+
