@@ -191,6 +191,19 @@ async def chat_endpoint(message: str = Form(...), role: str = Form("productor"),
                 reply = "❌ No hay base de datos de cultivos."
         except Exception as e:
             reply = f"❌ Error al borrar: {str(e)}"
+
+    elif msg_clean.startswith("/ayuda") or msg_clean.startswith("/help"):
+        reply = (
+            "🤖 **Menú de Ayuda - Agente Agro-Inteligente**\n\n"
+            "📋 **Comandos Disponibles:**\n"
+            "- `/nuevo_cultivo [Nombre]` → Registrar un cultivo.\n"
+            "- `/borrar_cultivo [ID]` → Eliminar un cultivo.\n"
+            "- `/simular_plaga` → Simular una alerta de plaga (Demo).\n"
+            "- `/ayuda` → Ver este mensaje.\n\n"
+            "💡 **Consultas Generales:**\n"
+            "Pregúntame sobre plagas, fertilización, riego o biología vegetal.\n"
+            "Ejemplo: *¿Cómo combato la mosca blanca en el tomate?*"
+        )
     
     # Si no fue un comando directo, llamar al LLM
     if not reply:

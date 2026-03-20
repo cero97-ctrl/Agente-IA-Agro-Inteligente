@@ -115,6 +115,8 @@
             padding: 10px 15px;
             border-radius: 15px;
             max-width: 80%;
+            white-space: pre-wrap;
+            /* Mantiene los saltos de línea del bot */
         }
 
         .user-message p {
@@ -366,7 +368,7 @@
                 chatBox.appendChild(typingIndicator);
 
                 if (history.length === 0) {
-                    appendMessage("¡Hola! Soy tu asistente agrónomo. ¿En qué puedo ayudarte hoy?", "bot");
+                    appendMessage("¡Hola! Soy tu asistente agrónomo. 🌱\n\nEstoy aquí para responder tus dudas sobre agricultura y biología vegetal.\n\nEscribe /ayuda para ver los comandos disponibles.", "bot");
                 } else {
                     history.forEach(msg => {
                         // Mapear 'user'/'bot' a las clases CSS
