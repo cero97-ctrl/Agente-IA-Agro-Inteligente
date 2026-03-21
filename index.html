@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistente Agrónomo IA</title>
     <style>
+        /* Reset global para evitar overflow por padding/borders */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: sans-serif;
             display: flex;
@@ -156,23 +163,124 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                -webkit-tap-highlight-color: transparent;
+            }
+
             #main-container {
                 flex-direction: column;
                 width: 100%;
-                /* Ancho total en móviles */
+                padding: 0 8px;
+                align-items: center;
+                gap: 12px;
             }
 
             #page-title {
-                font-size: 1.8em;
-                /* Título más pequeño para móviles */
-                margin: 10px 0;
+                font-size: 1.6em;
+                margin: 10px 0 5px;
+            }
+
+            #chat-container {
+                min-width: unset;
+                width: 100%;
+                height: 55vh;
+            }
+
+            #chat-box {
+                padding: 12px;
             }
 
             #status-panel {
-                width: 90%;
-                /* Un poco de margen en el panel inferior */
+                width: 100%;
                 height: auto;
-                max-height: 300px;
+                max-height: 35vh;
+                padding: 15px;
+            }
+
+            #user-input {
+                font-size: 16px; /* Evita zoom automático en iOS */
+                padding: 12px;
+            }
+
+            #send-button {
+                padding: 12px 18px;
+                font-size: 1em;
+                min-height: 44px;
+            }
+
+            #upload-btn {
+                padding: 12px 14px;
+                min-height: 44px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .message p {
+                max-width: 90%;
+                font-size: 0.95em;
+            }
+
+            #role-btn,
+            #help-btn {
+                padding: 12px;
+                font-size: 1em;
+                min-height: 44px;
+            }
+
+            .crop-card {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #page-title {
+                font-size: 1.3em;
+                margin: 8px 0 4px;
+            }
+
+            #chat-container {
+                height: 50vh;
+            }
+
+            #chat-box {
+                padding: 8px;
+            }
+
+            #input-area {
+                padding: 6px;
+            }
+
+            #user-input {
+                padding: 10px;
+                border-radius: 12px;
+            }
+
+            #send-button {
+                padding: 10px 14px;
+                border-radius: 12px;
+                font-size: 0.9em;
+            }
+
+            #upload-btn {
+                padding: 10px 12px;
+                font-size: 1em;
+            }
+
+            .message p {
+                max-width: 95%;
+                padding: 8px 12px;
+                font-size: 0.9em;
+            }
+
+            #status-panel {
+                padding: 12px;
+            }
+
+            #status-panel h2 {
+                font-size: 1.1em;
             }
         }
 
