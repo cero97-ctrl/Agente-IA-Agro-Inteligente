@@ -23,6 +23,7 @@
             background-color: #c8e6c9;
             margin: 0;
             overflow-x: hidden;
+            touch-action: pan-y; /* Optimización crítica para scroll móvil */
         }
 
         #main-container {
@@ -81,6 +82,7 @@
             border: 1px solid #ccc;
             border-radius: 15px;
             padding: 10px;
+            font-size: 16px; /* Evita zoom automático en iOS al escribir */
         }
 
         #input-controls {
