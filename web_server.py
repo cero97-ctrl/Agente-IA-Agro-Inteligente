@@ -200,6 +200,8 @@ async def chat_endpoint(message: str = Form(...), role: str = Form("productor"),
             "- `/borrar_cultivo [ID]` → Eliminar un cultivo.\n"
             "- `/simular_plaga` → Simular una alerta de plaga (Demo).\n"
             "- `/ayuda` → Ver este mensaje.\n\n"
+            "📸 **Imágenes:**\n"
+            "Presiona el botón de la cámara 📷 para subir fotos y analizarlas.\n\n"
             "💡 **Consultas Generales:**\n"
             "Pregúntame sobre plagas, fertilización, riego o biología vegetal.\n"
             "Ejemplo: *¿Cómo combato la mosca blanca en el tomate?*"
