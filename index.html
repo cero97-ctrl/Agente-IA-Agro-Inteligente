@@ -96,6 +96,17 @@
             cursor: pointer;
         }
 
+        #upload-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 10px 15px;
+            margin-right: 5px;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
         .message {
             margin-bottom: 15px;
         }
@@ -144,10 +155,19 @@
         @media (max-width: 768px) {
             #main-container {
                 flex-direction: column;
+                width: 100%;
+                /* Ancho total en móviles */
+            }
+
+            #page-title {
+                font-size: 1.8em;
+                /* Título más pequeño para móviles */
+                margin: 10px 0;
             }
 
             #status-panel {
-                width: 100%;
+                width: 90%;
+                /* Un poco de margen en el panel inferior */
                 height: auto;
                 max-height: 300px;
             }
@@ -278,6 +298,8 @@
                         style="color:red; border:none; background:none; cursor:pointer;">(x)</button>
                 </div>
                 <div id="input-controls">
+                    <button id="upload-btn" title="Subir imagen">📷</button>
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
                     <input type="text" id="user-input" placeholder="Escribe o arrastra una imagen aquí...">
                     <button id="send-button">Enviar</button>
                 </div>
@@ -308,6 +330,8 @@
         const fileNameSpan = document.getElementById('file-name');
         const typingIndicator = document.getElementById('typing-indicator');
         const roleBtn = document.getElementById('role-btn');
+        const fileInput = document.getElementById('file-input');
+        const uploadBtn = document.getElementById('upload-btn');
 
         let selectedFile = null;
         let currentRole = 'productor';
@@ -429,6 +453,15 @@
             }
         });
 
+        // --- Botón de Cámara (Móvil/Desktop) ---
+        uploadBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                handleFile(fileInput.files[0]);
+            }
+        });
+
         // --- Lógica de Drag & Drop ---
 
         // Prevenir comportamiento por defecto
@@ -467,6 +500,7 @@
         window.clearFile = function () {
             selectedFile = null;
             previewContainer.style.display = 'none';
+            fileInput.value = ''; // Limpiar el input oculto también
         }
 
         async function updateCropsStatus() {
