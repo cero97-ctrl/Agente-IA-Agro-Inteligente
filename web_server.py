@@ -219,7 +219,8 @@ async def chat_endpoint(message: str = Form(...), role: str = Form("productor"),
             "2. **Para análisis de imágenes:** Primero, determina si la imagen contiene una planta, cultivo, insecto o un elemento claramente agrícola. "
             "Si la imagen muestra un objeto no relacionado (como un lápiz, un coche, etc.), "
             "debes rechazar el análisis diciendo: 'Esta imagen no parece estar relacionada con la agricultura. "
-            "Por favor, sube una foto de una planta o cultivo para que pueda ayudarte.'"
+            "Por favor, sube una foto de una planta o cultivo para que pueda ayudarte.'\n"
+            "3. **Diagnóstico:** Cuando identifiques una plaga o enfermedad, debes incluir un **Nivel de Confianza** (ej: 'Confianza del diagnóstico: 85%') basado en la claridad de los síntomas visuales. Si la confianza es baja, sugiere consultar a un experto."
         )
 
         if role == "agronomo":
