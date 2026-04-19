@@ -1,0 +1,18 @@
+goal: "Instalar y configurar el framework ESP-IDF v5.1 para el desarrollo del firmware ESP32-S3."
+required_inputs:
+  - name: "install_dir"
+    description: "Ruta absoluta donde se clonará el framework (ej: /home/user/esp/esp-idf)."
+steps:
+  - step: 1
+    description: "Instalar dependencias del sistema operativo (requiere sudo)."
+    tool: "execution/install_esp_idf.py --mode deps"
+  - step: 2
+    description: "Clonar el repositorio de ESP-IDF v5.1."
+    tool: "execution/install_esp_idf.py --mode clone --path [install_dir]"
+  - step: 3
+    description: "Ejecutar el script de instalación para el chip ESP32-S3."
+    tool: "execution/install_esp_idf.py --mode install --path [install_dir]"
+expected_outputs:
+  - "Carpeta esp-idf configurada con las herramientas xtensa-esp32s3-elf-gcc."
+edge_cases:
+  - "Falla de permisos sudo: El usuario debe ejecutar los comandos de dependencias manualmente."

@@ -10,12 +10,12 @@ Para garantizar la reproducibilidad y evitar conflictos de dependencias, se reco
 
 1.  **Crear el entorno:**
     ```bash
-    conda create --name agro_env python=3.10 -y
+    conda create --name my_new_project_env python=3.12 -y
     ```
 
 2.  **Activar el entorno:**
     ```bash
-    conda activate agro_env
+    conda activate my_new_project_env
     ```
 
 3.  **Instalar dependencias:**
@@ -23,7 +23,14 @@ Para garantizar la reproducibilidad y evitar conflictos de dependencias, se reco
     pip install -r requirements.txt
     ```
 
-4.  **Visualizar entornos disponibles:**
+4. **Docker Sandbox (Para C/C++ y Hardware Toolchains):**
+   Para ejecutar código C de forma segura y determinista:
+   ```bash
+   # La imagen debe incluir build-essential y herramientas para ESP32-S3
+   docker build -t agent_sandbox ./docker/
+   ```
+
+5.  **Visualizar entornos disponibles:**
     ```bash
     conda env list
     ```
@@ -85,7 +92,8 @@ This is a list of the currently implemented workflows. You should select the mos
 *   **`query_memory.yaml`**: "Recuperar información relevante de la memoria a largo plazo basada en una consulta semántica."
 *   **`list_memories.yaml`**: "Listar los recuerdos más recientes almacenados en la memoria a largo plazo sin realizar búsqueda semántica."
 *   **`delete_memory.yaml`**: "Eliminar un recuerdo específico de la memoria a largo plazo mediante su ID."
-*   **`generate_chat_title.yaml`**: "Generar un título conciso y descriptivo para un historial de chat."
+*   **`git_update.yaml`**: "Gestionar el control de versiones del proyecto, aplicando versionado semántico (SemVer) y sincronizando con el repositorio remoto."
+*   **`system_maintenance.yaml`**: "Realizar un diagnóstico y mantenimiento integral de los recursos del sistema (RAM, ZRAM, Disco) y la base de datos de memoria."
 
 ### Layer 3: Execution (execution/) — Hacer el trabajo
 
