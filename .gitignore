@@ -30,3 +30,4 @@ backups/
 Thumbs.db
 
 firmware/SimpleCamServer/wifi_credentials.h
+node_modules

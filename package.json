@@ -1,0 +1,32 @@
+{
+  "name": "agente-ia-agro-inteligente",
+  "version": "1.0.0",
+  "description": "--- title: Agente Agro Inteligente emoji: ⚡ colorFrom: gray colorTo: gray sdk: docker pinned: false license: mit short_description: agente agronomo de asistencia remota ---",
+  "main": "hardhat.config.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cero97-ctrl/Agente-IA-Agro-Inteligente.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/cero97-ctrl/Agente-IA-Agro-Inteligente/issues"
+  },
+  "homepage": "https://github.com/cero97-ctrl/Agente-IA-Agro-Inteligente#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^17.4.2",
+    "hardhat": "^2.22.15"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.6.1"
+  }
+}
