@@ -17,4 +17,8 @@ export default {
             accounts: isValidKey ? [PRIVATE_KEY] : [],
         },
     },
+    // Configuración para verificar contratos en Etherscan
+    etherscan: {
+        apiKey: process.env.ETHERSCAN_API_KEY || "",
+    },
 };
