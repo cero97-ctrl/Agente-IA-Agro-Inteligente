@@ -1,0 +1,44 @@
+\documentclass{article}
+\usepackage[spanish]{babel}
+\usepackage{tikz}
+\usetikzlibrary{babel} % REGLA 1: Soluciona conflictos de flechas con Babel en español
+\usepackage{circuitikz}
+\usepackage{siunitx}   % REGLA 6: Formato estándar para números y unidades
+\usepackage{listings}  % REGLA 4: Inclusión segura de código fuente
+\usepackage{xcolor}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    language=Python,
+    frame=single,
+    backgroundcolor=\color{gray!5}
+}
+
+\begin{document}
+
+\section{Prueba de Memoria Evolutiva (LaTeX)}
+
+% REGLA 5: Escape de caracteres especiales
+Este documento verifica que los caracteres especiales como el guion\_bajo y los porcentajes (100\%) no rompan la compilación y funcionen correctamente en el texto plano.
+
+\subsection{Diagrama TikZ / Circuitikz}
+% REGLA 6: Uso de siunitx (\qty) en el texto
+El siguiente circuito cuenta con una resistencia de \qty{10}{\kilo\ohm} y un capacitor de \qty{100}{\nano\farad}.
+
+\begin{center}
+\begin{circuitikz}
+    % REGLA 7: Etiquetas de componentes estrictamente en modo matemático ($...$)
+    \draw (0,0) to[R, l={$R_1 = \qty{10}{\kilo\ohm}$}] (2,0)
+          to[C, l={$C_1 = \qty{100}{\nano\farad}$}] (4,0);
+    
+    % REGLA 2: Parseo seguro de coordenadas separando explícitamente \x/\y
+    \foreach \x/\y in {0/-1.5, 2/-1.5, 4/-1.5} {
+        \node[circle, fill=blue, inner sep=1.5pt] at (\x,\y) {};
+    }
+    
+    % Flecha con TikZ que fallaría sin \usetikzlibrary{babel}
+    \draw[->, thick, red] (1, -0.5) -- (1, -1.2) node[midway, right] {Nodo test};
+\end{circuitikz}
+\end{center}
+
+\end{document}
