@@ -1,0 +1,24 @@
+goal: "Estimar el saldo de créditos de OpenRouter y alertar cuando se acerque a los umbrales de recarga automática."
+required_inputs:
+  - name: "none"
+    description: "Chequeo puntual por defecto."
+optional_inputs:
+  - name: "watch"
+    description: "Bucle en segundo plano (chequeos periódicos)."
+  - name: "interval"
+    description: "Segundos entre chequeos (default 300)."
+  - name: "warn"
+    description: "Umbral de advertencia en USD (default 5.50)."
+  - name: "alert"
+    description: "Umbral de alerta/top-up en USD (default 5.10)."
+steps:
+  - step: "Check saldo"
+    script_to_invoke: "execution/monitor_saldo_openrouter.py"
+    description: "Consulta /api/v1/auth/key de OpenRouter, resta el uso acumulado a los créditos totales de referencia y emite alerta audible si el saldo cruza los umbrales."
+expected_outputs:
+  - "Un JSON con status, saldo_estimado, usage_total y limit del API key."
+edge_cases:
+  - case: "Sin OPENROUTER_API_KEY"
+    protocol: "El script falla con error y código de salida 1."
+  - case: "Saldo bajo umbral de alerta"
+    protocol: "Emite alerta audible (alert_user.py) y registra el evento en .tmp/saldo_openrouter.log."

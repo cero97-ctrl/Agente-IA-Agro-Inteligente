@@ -4,7 +4,9 @@ required_inputs:
     description: "La consulta o instrucción que se enviará al modelo."
 optional_inputs:
   - name: "provider"
-    description: "El proveedor del servicio (openai, anthropic o gemini). Si se omite, se detectará automáticamente según las claves disponibles."
+    description: "El proveedor del servicio (openai, anthropic, gemini, groq u openrouter). Si se omite, se detectará automáticamente según las claves disponibles (openrouter primero)."
+  - name: "model"
+    description: "Modelo específico (ej. anthropic/claude-opus-5 para tareas complejas en OpenRouter). Por defecto: google/gemini-3.7-flash en OpenRouter."
 steps:
   - step: "Call LLM API"
     script_to_invoke: "execution/chat_with_llm.py"

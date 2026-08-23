@@ -9,7 +9,7 @@ import ast
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from chat_with_llm import chat_openai, chat_anthropic, chat_gemini
+    from chat_with_llm import chat_openai, chat_anthropic, chat_gemini, chat_openrouter
 except ImportError:
     print(json.dumps(
         {"status": "error", "message": "No se pudo importar chat_with_llm.py. Asegúrate de que existe en execution/."}), file=sys.stderr)
@@ -56,7 +56,9 @@ INSTRUCCIONES:
 
     # Intentar usar el modelo más capaz disponible (GPT-4o o Claude 3.5 Sonnet)
     response = {}
-    if os.getenv("OPENAI_API_KEY"):
+    if os.getenv("OPENROUTER_API_KEY"):
+        response = chat_openrouter(messages, model="anthropic/claude-opus-5")
+    elif os.getenv("OPENAI_API_KEY"):
         response = chat_openai(messages, model="gpt-4o")
     elif os.getenv("ANTHROPIC_API_KEY"):
         response = chat_anthropic(messages, model="claude-3-5-sonnet-20240620")

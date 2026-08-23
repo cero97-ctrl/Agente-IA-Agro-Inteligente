@@ -12,7 +12,7 @@ except ImportError:
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from chat_with_llm import chat_openai, chat_anthropic, chat_gemini
+    from chat_with_llm import chat_openai, chat_anthropic, chat_gemini, chat_openrouter
 except ImportError:
     print(json.dumps({"status": "error", "message": "No se pudo importar chat_with_llm.py."}), file=sys.stderr)
     sys.exit(1)
@@ -61,7 +61,9 @@ CONTENIDO A TRADUCIR:
 
     # Priorizar Gemini como se solicitó
     response = {}
-    if os.getenv("GOOGLE_API_KEY"):
+    if os.getenv("OPENROUTER_API_KEY"):
+        response = chat_openrouter(messages)
+    elif os.getenv("GOOGLE_API_KEY"):
         response = chat_gemini(messages)
     elif os.getenv("OPENAI_API_KEY"):
         response = chat_openai(messages, model="gpt-4o")

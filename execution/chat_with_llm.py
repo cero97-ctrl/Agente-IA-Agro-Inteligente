@@ -185,6 +185,46 @@ def chat_groq(messages, model="llama-3.3-70b-versatile", system_instruction=None
     except Exception as e:
         return {"error": str(e)}
 
+def chat_openrouter(messages, model="google/gemini-3.7-flash", system_instruction=None):
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        return {"error": "Falta OPENROUTER_API_KEY en .env"}
+
+    max_tokens = int(os.getenv("OPENROUTER_MAX_TOKENS", "2048"))
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    clean_messages = []
+    for m in messages:
+        clean_messages.append({
+            "role": m.get("role", "user"),
+            "content": str(m.get("content", ""))
+        })
+
+    sys_msg = system_instruction or "Eres un asistente de IA útil actuando como la capa de Orquestación en una arquitectura de 3 capas."
+    data = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": sys_msg}
+        ] + clean_messages,
+        "temperature": 0.7,
+        "max_tokens": max_tokens
+    }
+
+    try:
+        resp = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data, timeout=30)
+
+        if not resp.ok:
+            return {"error": f"OpenRouter API Error ({resp.status_code}): {resp.text}"}
+
+        result = resp.json()
+        return {"content": result['choices'][0]['message']['content']}
+    except Exception as e:
+        return {"error": str(e)}
+
 def chat_gemini(messages, model="gemini-flash-latest", system_instruction=None, image_path=None):
     if not genai:
         return {"error": "Librería 'google-generativeai' no instalada. Ejecuta: pip install -r requirements.txt"}
@@ -259,7 +299,8 @@ def chat_gemini(messages, model="gemini-flash-latest", system_instruction=None, 
 def main():
     parser = argparse.ArgumentParser(description="Enviar un prompt a un LLM (OpenAI/Anthropic).")
     parser.add_argument("--prompt", required=True, help="El mensaje para el LLM.")
-    parser.add_argument("--provider", choices=["openai", "anthropic", "gemini", "groq"], help="Proveedor de IA.")
+    parser.add_argument("--provider", choices=["openai", "anthropic", "gemini", "groq", "openrouter"], help="Proveedor de IA.")
+    parser.add_argument("--model", help="Modelo específico (ej. anthropic/claude-opus-5 para tareas complejas en OpenRouter). Si se omite, usa el modelo por defecto del proveedor.")
     parser.add_argument("--memory-query", help="Texto específico para buscar en memoria (si es diferente al prompt).")
     parser.add_argument("--image", help="Ruta a una imagen local para analizar (Solo Gemini).")
     parser.add_argument("--memory-only", action="store_true", help="Solo consulta la memoria y devuelve el resultado directo sin llamar al LLM.")
@@ -323,7 +364,9 @@ PREGUNTA DEL USUARIO:
         # Si el usuario fuerza uno, solo intentamos ese
         providers_to_try.append(args.provider)
     else:
-        # Orden de preferencia: Groq (Rápido) -> Gemini (Backup robusto) -> Otros
+        # Orden de preferencia: OpenRouter (créditos propios) -> Groq (Rápido) -> Gemini (Backup robusto) -> Otros
+        if os.getenv("OPENROUTER_API_KEY") and os.getenv("OPENROUTER_API_KEY").strip():
+            providers_to_try.append("openrouter")
         if os.getenv("GROQ_API_KEY") and os.getenv("GROQ_API_KEY").strip():
             providers_to_try.append("groq")
         if os.getenv("GOOGLE_API_KEY") and os.getenv("GOOGLE_API_KEY").strip():
@@ -341,13 +384,15 @@ PREGUNTA DEL USUARIO:
     for provider in providers_to_try:
         try:
             if provider == "openai":
-                result = chat_openai(messages_for_llm, system_instruction=args.system)
+                result = chat_openai(messages_for_llm, model=args.model or "gpt-4o-mini", system_instruction=args.system)
             elif provider == "anthropic":
-                result = chat_anthropic(messages_for_llm, system_instruction=args.system)
+                result = chat_anthropic(messages_for_llm, model=args.model or "claude-3-5-sonnet-20240620", system_instruction=args.system)
             elif provider == "groq":
-                result = chat_groq(messages_for_llm, system_instruction=args.system)
+                result = chat_groq(messages_for_llm, model=args.model or "llama-3.3-70b-versatile", system_instruction=args.system)
+            elif provider == "openrouter":
+                result = chat_openrouter(messages_for_llm, model=args.model or "google/gemini-3.7-flash", system_instruction=args.system)
             elif provider == "gemini":
-                result = chat_gemini(messages_for_llm, system_instruction=args.system, image_path=args.image)
+                result = chat_gemini(messages_for_llm, model=args.model or "gemini-flash-latest", system_instruction=args.system, image_path=args.image)
             
             # Si tuvimos éxito (hay contenido y no error), salimos del bucle
             if "content" in result and "error" not in result:

@@ -11,7 +11,7 @@ import datetime
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from chat_with_llm import chat_openai, chat_anthropic, chat_gemini, chat_groq
+    from chat_with_llm import chat_openai, chat_anthropic, chat_gemini, chat_groq, chat_openrouter
 except ImportError:
     print(json.dumps({"status": "error", "message": "No se pudo importar chat_with_llm.py."}), file=sys.stderr)
     sys.exit(1)
@@ -70,7 +70,9 @@ REQUISITOS DEL REPORTE:
 
     # 3. Llamar al LLM
     response = {}
-    if os.getenv("OPENAI_API_KEY"):
+    if os.getenv("OPENROUTER_API_KEY"):
+        response = chat_openrouter(messages)
+    elif os.getenv("OPENAI_API_KEY"):
         response = chat_openai(messages, model="gpt-4o")
     elif os.getenv("ANTHROPIC_API_KEY"):
         response = chat_anthropic(messages, model="claude-3-5-sonnet-20240620")

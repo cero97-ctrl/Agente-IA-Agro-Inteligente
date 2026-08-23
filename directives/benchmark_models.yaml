@@ -5,7 +5,7 @@ required_inputs:
 steps:
   - step: "Run Benchmark"
     script_to_invoke: "execution/benchmark_models.py"
-    description: "Enviar una solicitud idéntica a OpenAI, Anthropic y Gemini (si están disponibles) y medir el tiempo de respuesta."
+    description: "Enviar una solicitud idéntica a OpenRouter, OpenAI, Anthropic y Gemini (si están disponibles) y medir el tiempo de respuesta."
 expected_outputs:
   - "Una tabla comparativa con los tiempos en segundos para cada modelo."
 edge_cases:

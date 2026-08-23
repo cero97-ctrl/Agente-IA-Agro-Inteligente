@@ -8,7 +8,7 @@ import json
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from chat_with_llm import chat_openai, chat_anthropic, chat_gemini, chat_groq
+    from chat_with_llm import chat_openai, chat_anthropic, chat_gemini, chat_groq, chat_openrouter
 except ImportError:
     print("Error: No se pudo importar chat_with_llm.py", file=sys.stderr)
     sys.exit(1)
@@ -38,6 +38,14 @@ def main():
     print("========================================")
 
     results = []
+
+    # 0. OpenRouter (créditos propios)
+    if os.getenv("OPENROUTER_API_KEY"):
+        t = measure_latency("OpenRouter", chat_openrouter, "google/gemini-3.7-flash")
+        if t:
+            results.append(("OpenRouter (Gemini Flash)", t))
+    else:
+        print("⚪ OpenRouter: Skipped (No API Key)")
 
     # 1. Google Gemini
     if os.getenv("GOOGLE_API_KEY"):
