@@ -16,5 +16,6 @@ requests
 fastapi
 uvicorn
 python-multipart
+docker
 huggingface-hub>=0.10.0
 Pillow
